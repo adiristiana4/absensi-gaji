@@ -1,0 +1,92 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f3fef4;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #25a36f;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+header button {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  background: white;
+  color: #25a36f;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(#cfffdd, #f6fff8);
+}
+
+.login-box {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px #ccc;
+  text-align: center;
+}
+
+.login-box input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 10px;
+  margin-top: 10px;
+  background: #25a36f;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tab {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.tab button {
+  margin: 0 5px;
+  padding: 8px 15px;
+}
+
+.tanggal-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tanggal-grid div {
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  border: 1px solid #ccc;
+}
+
+.tanggal-grid .masuk {
+  background: #b2f7b2;
+}
+
+.tanggal-grid .libur {
+  background: #ffcccc;
+}
