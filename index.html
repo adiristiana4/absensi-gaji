@@ -3,34 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login Karyawan</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>Login Absensi</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="login-body">
-  <div class="login-box">
-    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User Icon">
-    <h2>Login Karyawan</h2>
-    <input type="text" id="kodeOps" placeholder="Kode OPS">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <h2>Login Karyawan</h2>
+      <input type="text" id="kodeOps" placeholder="Kode OPS" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Masuk</button>
+    </div>
   </div>
 
-  <script>
-    const users = {
-      "Ops264479": { password: "123456", nama: "Adi Ristiana" },
-      "Ops999888": { password: "admin", nama: "Karyawan 2" }
-    };
-
-    function login() {
-      const kode = document.getElementById('kodeOps').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      if (users[kode] && users[kode].password === pass) {
-        localStorage.setItem("userLogin", JSON.stringify({ kode: kode, nama: users[kode].nama, sejak: new Date().toISOString() }));
-        window.location.href = "absensi.html";
-      } else {
-        alert("Kode OPS atau password salah.");
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
