@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Absensi & Gaji</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f6fef8;
+      color: #222;
+    }
+    header {
+      background: #16a34a;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+    }
+    .tab-menu {
+      display: flex;
+      justify-content: space-around;
+      background: #d1fae5;
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .tab-menu button {
+      background: #10b981;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .absen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+    }
+    .absen-grid button {
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+    .absen-grid button.active {
+      background: #4ade80;
+      color: white;
+    }
+    .rekap, .slip, .riwayat {
+      margin-top: 20px;
+    }
+    .logout-btn {
+      margin-top: 10px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .slip-img {
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: white;
+      width: fit-content;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Selamat Datang, <span id="userName"></span></h1>
+  </header>
+  <div class="container">
+    <div class="tab-menu">
+      <button onclick="showTab('periode1')">Periode 1-15</button>
+      <button onclick="showTab('periode2')">Periode 16-31</button>
+      <button onclick="showTab('rekap')">Rekap</button>
+      <button onclick="showTab('slip')">Slip Gaji</button>
+      <button onclick="showTab('riwayat')">Riwayat</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div id="periode1" class="tab-content active">
+      <h2>Absensi Periode 1 - 15</h2>
+      <div class="absen-grid" id="grid1"></div>
+    </div>
+
+    <div id="periode2" class="tab-content">
+      <h2>Absensi Periode 16 - 31</h2>
+      <div class="absen-grid" id="grid2"></div>
+    </div>
+
+    <div id="rekap" class="tab-content rekap"></div>
+    <div id="slip" class="tab-content slip"></div>
+    <div id="riwayat" class="tab-content riwayat"></div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("userLogin"));
+    if (!user) window.location.href = "index.html";
+    document.getElementById("userName").textContent = user.nama;
+
+    const gajiPerHari = 100000;
+    const totalHari = 31;
+    const absenKey = `absen-${user.kode}`;
+    let absen = JSON.parse(localStorage.getItem(absenKey)) || [];
+
+    function renderAbsen(gridId, start, end) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = "";
+      for (let i = start; i <= end; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (absen.includes(i)) btn.classList.add("active");
+        btn.onclick = () => toggleAbsen(i);
+        grid.appendChild(btn);
+      }
+    }
+
+    function toggleAbsen(hari) {
+      if (absen.includes(hari)) {
+        absen = absen.filter(h => h !== hari);
+      } else {
+        absen.push(hari);
+      }
+      localStorage.setItem(absenKey, JSON.stringify(absen));
+      renderAll();
+    }
+
+    function renderRekap() {
+      const masuk = absen.length;
+      const gaji = masuk * gajiPerHari;
+      document.getElementById("rekap").innerHTML = `
+        <h2>Rekap Bulanan</h2>
+        <p>Total Hari Masuk: ${masuk} hari</p>
+        <p>Total Gaji: Rp ${gaji.toLocaleString()}</p>
+      `;
+    }
+
+    function renderSlip() {
+      const masuk = absen.length;
+      const gaji = masuk * gajiPerHari;
+      const html = `
+        <div class="slip-img">
+          <h2>Slip Gaji</h2>
+          <p>Nama: ${user.nama}</p>
+          <p>Hari Masuk: ${masuk}</p>
+          <p>Gaji per Hari: Rp ${gajiPerHari.toLocaleString()}</p>
+          <p>Total Gaji: Rp ${gaji.toLocaleString()}</p>
+        </div>
+      `;
+      document.getElementById("slip").innerHTML = html;
+    }
+
+    function renderRiwayat() {
+      document.getElementById("riwayat").innerHTML = `
+        <h2>Riwayat Kerja</h2>
+        <p>Mulai bekerja sejak: Juli 2025</p>
+      `;
+    }
+
+    function renderAll() {
+      renderAbsen("grid1", 1, 15);
+      renderAbsen("grid2", 16, 31);
+      renderRekap();
+      renderSlip();
+      renderRiwayat();
+    }
+
+    function showTab(id) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function logout() {
+      localStorage.removeItem("userLogin");
+      window.location.href = "index.html";
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
