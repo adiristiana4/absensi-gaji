@@ -1,181 +1,275 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Absensi Karyawan</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #e3f2fd, #ffffff);
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 100%;
-    }
-    h2 {
-      text-align: center;
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
       color: #333;
     }
-    select, input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .days-grid button {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #cfd8dc;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .days-grid button.active {
-      background: #2196f3;
-      color: white;
-    }
-    .summary {
-      background: #f1f8e9;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-    .btn {
-      background: #1976d2;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      width: 100%;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #slipGaji {
+
+    .login-container, .absensi-container {
       display: none;
-      background: #fff;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-box h2 {
+      margin-bottom: 20px;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .login-box button:hover {
+      background: #0056b3;
+    }
+
+    .absensi-container {
+      flex-direction: column;
+      background: url('https://i.ibb.co/z6xchh5/bg-absensi.jpg') no-repeat center center/cover;
+      color: white;
+    }
+
+    .absensi-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .calendar label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.1);
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    .slip {
+      margin-top: 30px;
+      background: rgba(0,0,0,0.4);
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 300px;
-      margin: auto;
+      width: 100%;
+      max-width: 500px;
+      margin-inline: auto;
+    }
+
+    .slip h3 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .slip p {
+      margin: 6px 0;
+    }
+
+    select, button.export {
       margin-top: 20px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    button.logout {
+      background: #dc3545;
+      color: white;
+      margin-top: 20px;
+    }
+
+    @media(max-width: 600px) {
+      .calendar {
+        grid-template-columns: repeat(5, 1fr);
+      }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>Absensi Karyawan</h2>
-  <label>Pilih Periode:</label>
-  <select id="periodeSelect" onchange="generateTanggal()">
-    <option value="1">Periode 1 - (1 s.d 15)</option>
-    <option value="2">Periode 2 - (16 s.d Akhir)</option>
-  </select>  <div class="days-grid" id="tanggalGrid"></div><label>Damage / Hari (Rp):</label> <input type="number" id="damagePerHari" value="5000" />
 
-  <div class="summary">
-    <p>Hari Masuk: <span id="hariMasuk">0</span></p>
-    <p>Total Gaji: <span id="totalGaji">Rp 0</span></p>
-    <p>Total Potongan: <span id="totalPotongan">Rp 0</span></p>
-  </div><button class="btn" onclick="logout()">Logout</button> <button class="btn" style="margin-top:10px;background:#28a745" onclick="cetakSlip()">Download Slip Gaji (.png)</button>
+  <!-- Login Section -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-box">
+      <h2>Login Karyawan</h2>
+      <input type="text" id="kodeOps" placeholder="Kode OPS">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div>
+  </div>
 
-</div><div id="slipGaji">
-  <h3 style="text-align:center;">Slip Gaji</h3>
-  <p>Nama: <span id="slipNama"></span></p>
-  <p>Periode: <span id="slipPeriode"></span></p>
-  <p>Hari Masuk: <span id="slipHariMasuk"></span></p>
-  <p>Total Gaji: <span id="slipGaji"></span></p>
-  <p>Total Potongan: <span id="slipPotongan"></span></p>
-</div><script>
-const gajiPerHari = 202000;
-let selectedTanggal = [];
+  <!-- Absensi Section -->
+  <div class="absensi-container" id="absensiContainer">
+    <div class="absensi-header">
+      <h2>Selamat Datang, <span id="namaUser"></span></h2>
+      <select id="periode" onchange="generateCalendar()"> 
+        <option value="1">Periode 1 (1–15)</option>
+        <option value="2">Periode 2 (16–akhir)</option>
+      </select>
+    </div>
 
-function updateRingkasan() {
-  const damage = parseInt(document.getElementById("damagePerHari").value || 0);
-  const hari = selectedTanggal.length;
-  document.getElementById("hariMasuk").innerText = hari;
-  document.getElementById("totalGaji").innerText = `Rp ${formatRupiah(hari * gajiPerHari)}`;
-  document.getElementById("totalPotongan").innerText = `Rp ${formatRupiah(hari * damage)}`;
-}
+    <div class="calendar" id="calendar"></div>
 
-function formatRupiah(angka) {
-  return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
+    <div class="slip" id="slipGaji">
+      <h3>Slip Gaji</h3>
+      <p>Nama: <span id="slipNama"></span></p>
+      <p>Total Hari Masuk: <span id="totalHari"></span></p>
+      <p>Gaji per Hari: Rp202.000</p>
+      <p>Total Gaji: <span id="totalGaji"></span></p>
+      <p>Potongan Tetap: Rp75.000</p>
+      <p><strong>Gaji Bersih: <span id="gajiBersih"></span></strong></p>
+    </div>
 
-function generateTanggal() {
-  const grid = document.getElementById("tanggalGrid");
-  grid.innerHTML = "";
-  selectedTanggal = [];
-  const periode = document.getElementById("periodeSelect").value;
-  const now = new Date();
-  const tahun = now.getFullYear();
-  const bulan = now.getMonth();
-  const akhirBulan = new Date(tahun, bulan + 1, 0).getDate();
-  let mulai = periode === "1" ? 1 : 16;
-  let selesai = periode === "1" ? 15 : akhirBulan;
-  for (let i = mulai; i <= selesai; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.onclick = function() {
-      if (selectedTanggal.includes(i)) {
-        selectedTanggal = selectedTanggal.filter(t => t !== i);
-        btn.classList.remove("active");
-      } else {
-        selectedTanggal.push(i);
-        btn.classList.add("active");
-      }
-      updateRingkasan();
+    <button class="export" onclick="exportSlip()">Download Slip Gaji</button>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const users = {
+      "Ops264479": { password: "123456", nama: "Adi Ristiana" },
+      "Ops999888": { password: "admin", nama: "Karyawan 2" }
     };
-    grid.appendChild(btn);
-  }
-  updateRingkasan();
-}
 
-document.addEventListener("DOMContentLoaded", generateTanggal);
+    const user = JSON.parse(localStorage.getItem("userLogin"));
 
-function logout() {
-  localStorage.removeItem('loginNama');
-  location.href = "login.html";
-}
+    function showLogin() {
+      document.getElementById('loginContainer').style.display = "flex";
+      document.getElementById('absensiContainer').style.display = "none";
+    }
 
-function cetakSlip() {
-  const nama = localStorage.getItem('loginNama') || 'User';
-  const periode = document.getElementById('periodeSelect').options[document.getElementById('periodeSelect').selectedIndex].text;
-  const hariMasuk = document.getElementById('hariMasuk').textContent;
-  const totalGaji = document.getElementById('totalGaji').textContent;
-  const totalPotongan = document.getElementById('totalPotongan').textContent;
+    function showAbsensi() {
+      document.getElementById('loginContainer').style.display = "none";
+      document.getElementById('absensiContainer').style.display = "flex";
+      document.getElementById('namaUser').innerText = user.nama;
+      document.getElementById('slipNama').innerText = user.nama;
+      generateCalendar();
+    }
 
-  document.getElementById('slipNama').textContent = nama;
-  document.getElementById('slipPeriode').textContent = periode;
-  document.getElementById('slipHariMasuk').textContent = hariMasuk;
-  document.getElementById('slipGaji').textContent = totalGaji;
-  document.getElementById('slipPotongan').textContent = totalPotongan;
+    function login() {
+      const kode = document.getElementById('kodeOps').value.trim();
+      const pass = document.getElementById('password').value.trim();
 
-  const slip = document.getElementById("slipGaji");
-  slip.style.display = "block";
+      if (users[kode] && users[kode].password === pass) {
+        localStorage.setItem("userLogin", JSON.stringify({ kode: kode, nama: users[kode].nama }));
+        location.reload();
+      } else {
+        alert("Kode OPS atau password salah.");
+      }
+    }
 
-  html2canvas(slip).then(canvas => {
-    const link = document.createElement('a');
-    link.download = 'slip_gaji.png';
-    link.href = canvas.toDataURL();
-    link.click();
-    slip.style.display = "none";
-  });
-}
-</script></body>
-  </html>
+    function logout() {
+      localStorage.removeItem("userLogin");
+      location.reload();
+    }
+
+    function generateCalendar() {
+      const periode = document.getElementById('periode').value;
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let start = periode === "1" ? 1 : 16;
+      let end = periode === "1" ? 15 : daysInMonth;
+
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = "";
+
+      let totalMasuk = 0;
+      for (let i = start; i <= end; i++) {
+        const checkboxId = `hari${i}`;
+        const saved = JSON.parse(localStorage.getItem(user.kode + "_absensi")) || {};
+        const checked = saved[checkboxId] || false;
+
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" id="${checkboxId}" ${checked ? 'checked' : ''} onchange="saveAbsensi('${checkboxId}')"> ${i}`;
+        calendar.appendChild(label);
+
+        if (checked) totalMasuk++;
+      }
+
+      updateSlip(totalMasuk);
+    }
+
+    function saveAbsensi(id) {
+      const checked = document.getElementById(id).checked;
+      const saved = JSON.parse(localStorage.getItem(user.kode + "_absensi")) || {};
+      saved[id] = checked;
+      localStorage.setItem(user.kode + "_absensi", JSON.stringify(saved));
+      generateCalendar();
+    }
+
+    function updateSlip(totalMasuk) {
+      const gajiPerHari = 202000;
+      const potongan = 75000;
+      const total = totalMasuk * gajiPerHari;
+      const bersih = total - potongan;
+
+      document.getElementById('totalHari').innerText = totalMasuk;
+      document.getElementById('totalGaji').innerText = `Rp${total.toLocaleString()}`;
+      document.getElementById('gajiBersih').innerText = `Rp${bersih.toLocaleString()}`;
+    }
+
+    function exportSlip() {
+      html2canvas(document.getElementById("slipGaji")).then(canvas => {
+        const link = document.createElement('a');
+        link.download = "slip-gaji.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    // On Load
+    if (user) {
+      showAbsensi();
+    } else {
+      showLogin();
+    }
+  </script>
+</body>
+</html>
