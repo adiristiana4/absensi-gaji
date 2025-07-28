@@ -1,180 +1,260 @@
 <!DOCTYPE html><html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Absensi & Gaji</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Absensi dan Gaji</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #ffffff, #d4f5d2);
+      background: url('https://i.ibb.co/BszjCQQ/bg-login.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
       color: #333;
     }
-    .login-container, .absensi-container {
-      max-width: 500px;
-      margin: 0 auto;
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 15px;
       padding: 20px;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      border-radius: 10px;
       margin-top: 40px;
     }
-    h2 { text-align: center; color: #388e3c; }
-    label { display: block; margin-top: 10px; }
-    input[type="text"], input[type="password"], select {
-      width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc;
-      border-radius: 5px;
+    h1, h2 {
+      text-align: center;
     }
-    button {
-      margin-top: 20px; padding: 10px; width: 100%; background: #4CAF50; color: white;
-      border: none; border-radius: 5px; font-weight: bold;
+    .tab-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-    .absensi-grid label {
-      display: inline-block; width: 45px; margin: 4px; text-align: center;
+    .tab-buttons button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border-radius: 8px;
     }
-    .result-box {
-      background: #f1f8e9; padding: 15px; border-radius: 10px;
-      margin-top: 20px; font-size: 14px;
+    .tab-buttons button.active {
+      background-color: #2e7d32;
     }
-    #logoutBtn {
-      background: #e53935;
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
     }
   </style>
 </head>
-<body><div class="login-container" id="loginPage">
-  <h2>Login Absensi</h2>
-  <label>Kode OPS</label>
-  <input type="text" id="kodeOPS">
-  <label>Password</label>
-  <input type="password" id="passwordOPS">
-  <button onclick="login()">Login</button>
-</div><div class="absensi-container" id="absensiPage" style="display:none">
-  <h2>Selamat datang, <span id="userNama"></span>!</h2>
-  <label>Periode:</label>
-  <select id="periode">
-    <option value="1">Periode 1 (1–15)</option>
-    <option value="2">Periode 2 (16–Akhir)</option>
-  </select>  <div class="absensi-grid" id="absensi"></div><label>Potongan per Hari (Damage)</label> <input type="number" id="potonganDamage" value="0" />
+<body>
+  <div class="container">
+    <h1>Selamat Datang, <span id="userName"></span></h1>
+    <div class="tab-buttons">
+      <button class="tablink active" onclick="openTab(event, 'absensi')">Absensi</button>
+      <button class="tablink" onclick="openTab(event, 'rekap')">Rekap 1 Bulan</button>
+      <button class="tablink" onclick="openTab(event, 'riwayat')">Riwayat Kerja</button>
+    </div><div id="absensi" class="tab-content active">
+  <h2>Absensi Periode</h2>
+  <label for="periode">Pilih Periode:</label>
+  <select id="periode" onchange="generateCalendar()">
+    <option value="1">1–15</option>
+    <option value="2">16–Akhir</option>
+  </select>
+  <div id="calendar"></div>
+  <p>Total Hari Masuk: <span id="hariMasuk">0</span></p>
+  <label for="potongan">Potongan Per Hari (Rp):</label>
+  <input type="number" id="potongan" value="0" onchange="updateGaji()">
+  <p>Total Gaji: <span id="totalGaji">Rp0</span></p>
+</div>
 
-  <div class="result-box" id="slipGaji"></div><button onclick="downloadSlipGaji()">Download Slip Gaji (PNG)</button> <button id="logoutBtn" onclick="logout()">Logout</button>
+<div id="rekap" class="tab-content">
+  <h2>Rekap 1 Bulan</h2>
+  <div id="rekapBulan"></div>
+</div>
 
-</div><canvas id="canvasExport" style="display:none"></canvas>
+<div id="riwayat" class="tab-content">
+  <h2>Riwayat Kerja</h2>
+  <table>
+    <thead>
+      <tr><th>Bulan</th><th>Total Hari Masuk</th><th>Gaji</th></tr>
+    </thead>
+    <tbody id="riwayatKerja"></tbody>
+  </table>
+</div>
 
-<script>
-  const akun = [
-    { kode: "Ops264479", password: "12345678", nama: "Adi Ristiana" },
-    { kode: "OPS002", password: "456", nama: "Siti" }
-  ];
+  </div>  <script>
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi & Gaji</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif;}
+    body {background: #f6fef8; color: #1a1a1a; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;}
+    .container {background: white; padding: 20px; border-radius: 16px; box-shadow: 0 0 12px rgba(0,0,0,0.05); max-width: 700px; width: 100%;}
+    h2 {margin-bottom: 20px; text-align: center; color: #2c7a4b;}
+    input, button, select {width: 100%; padding: 10px; margin: 6px 0; border-radius: 8px; border: 1px solid #ccc;}
+    button {background: #2c7a4b; color: white; border: none; cursor: pointer; font-weight: 600;}
+    button:hover {background: #276a41;}
+    .tabs {display: flex; margin-bottom: 10px;}
+    .tab {flex: 1; padding: 10px; text-align: center; cursor: pointer; background: #e0f2e9; border-radius: 10px 10px 0 0;}
+    .tab.active {background: #2c7a4b; color: white; font-weight: bold;}
+    .tab-content {display: none; border: 1px solid #2c7a4b; border-radius: 0 0 10px 10px; padding: 15px;}
+    .tab-content.active {display: block;}
+    table {width: 100%; border-collapse: collapse; margin-top: 10px;}
+    th, td {padding: 8px; border: 1px solid #ccc; text-align: center; font-size: 14px;}
+    #slip {display:none; padding: 10px; margin-top: 15px; background: #f0fdf4; border: 1px dashed #2c7a4b;}
+    .logout {margin-top: 10px; background: #e53935;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginForm">
+      <h2>Login Karyawan</h2>
+      <input type="text" id="kodeOps" placeholder="Kode OPS">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div><div id="mainApp" style="display:none">
+  <h2>Selamat Datang, <span id="namaUser"></span></h2>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('absensi')">Absensi</div>
+    <div class="tab" onclick="switchTab('rekap')">Rekap</div>
+    <div class="tab" onclick="switchTab('riwayat')">Riwayat</div>
+  </div>
 
-  const gajiPerHari = 202000;
+  <div id="absensi" class="tab-content active">
+    <label>Pilih Tanggal:</label>
+    <input type="date" id="tanggal">
+    <label>Potongan Hari Ini:</label>
+    <input type="number" id="potongan" placeholder="Contoh: 1000">
+    <button onclick="absenMasuk()">Tandai Masuk</button>
+    <table>
+      <thead><tr><th>Tanggal</th><th>Gaji</th><th>Potongan</th></tr></thead>
+      <tbody id="tabelAbsensi"></tbody>
+    </table>
+  </div>
 
-  function login() {
-    const kode = document.getElementById("kodeOPS").value.trim();
-    const pass = document.getElementById("passwordOPS").value.trim();
-    const user = akun.find(a => a.kode === kode && a.password === pass);
-    if (user) {
-      localStorage.setItem("userLogin", JSON.stringify(user));
+  <div id="rekap" class="tab-content">
+    <div id="slip"></div>
+    <button onclick="cetakSlip()">Cetak Slip Gaji (PNG)</button>
+  </div>
+
+  <div id="riwayat" class="tab-content">
+    <table>
+      <thead><tr><th>Bulan</th><th>Total Hari</th><th>Total Gaji</th></tr></thead>
+      <tbody id="riwayatKerja"></tbody>
+    </table>
+  </div>
+
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+  </div>  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>  <script>
+    const users = {
+      "Ops264479": { password: "123456", nama: "Adi Ristiana" },
+      "Ops999888": { password: "admin", nama: "Karyawan 2" }
+    };
+    const gajiPerHari = 100000;
+
+    const loginForm = document.getElementById('loginForm');
+    const mainApp = document.getElementById('mainApp');
+    const namaUser = document.getElementById('namaUser');
+
+    const currentUser = JSON.parse(localStorage.getItem('userLogin'));
+    if (currentUser) {
+      namaUser.textContent = currentUser.nama;
+      loginForm.style.display = 'none';
+      mainApp.style.display = 'block';
+      loadAbsensi();
+    }
+
+    function login() {
+      const kode = document.getElementById('kodeOps').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      if (users[kode] && users[kode].password === pass) {
+        localStorage.setItem("userLogin", JSON.stringify({ kode: kode, nama: users[kode].nama }));
+        location.reload();
+      } else {
+        alert("Kode OPS atau password salah.");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('userLogin');
       location.reload();
-    } else {
-      alert("Kode atau password salah!");
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem("userLogin");
-    location.reload();
-  }
-
-  function init() {
-    const user = JSON.parse(localStorage.getItem("userLogin"));
-    if (!user) return;
-
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("absensiPage").style.display = "block";
-    document.getElementById("userNama").innerText = user.nama;
-    renderKalender();
-  }
-
-  function getTanggalMax() {
-    const periode = document.getElementById("periode").value;
-    const now = new Date();
-    const total = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    return periode === "1" ? 15 : total;
-  }
-
-  function renderKalender() {
-    const wrapper = document.getElementById("absensi");
-    const periode = document.getElementById("periode").value;
-    const user = JSON.parse(localStorage.getItem("userLogin"));
-    const bulan = new Date().getMonth() + 1;
-    const key = `absensi_${user.kode}_${bulan}_${periode}`;
-    const data = JSON.parse(localStorage.getItem(key)) || {};
-    const totalHari = getTanggalMax();
-    wrapper.innerHTML = "";
-    for (let i = periode === "1" ? 1 : 16; i <= totalHari; i++) {
-      const checked = data[i] ? "checked" : "";
-      wrapper.innerHTML += `<label><input type='checkbox' data-tgl='${i}' ${checked}>${i}</label>`;
     }
 
-    document.querySelectorAll("#absensi input").forEach(input => {
-      input.addEventListener("change", function() {
-        const tgl = this.dataset.tgl;
-        if (this.checked) data[tgl] = true; else delete data[tgl];
-        localStorage.setItem(key, JSON.stringify(data));
-        hitungGaji();
+    function absenMasuk() {
+      const tanggal = document.getElementById('tanggal').value;
+      const potongan = parseInt(document.getElementById('potongan').value || 0);
+      if (!tanggal) return alert("Pilih tanggal dulu");
+      const data = JSON.parse(localStorage.getItem('absensi_' + currentUser.kode)) || {};
+      data[tanggal] = { gaji: gajiPerHari, potongan: potongan };
+      localStorage.setItem('absensi_' + currentUser.kode, JSON.stringify(data));
+      loadAbsensi();
+    }
+
+    function loadAbsensi() {
+      const tbody = document.getElementById('tabelAbsensi');
+      tbody.innerHTML = '';
+      const data = JSON.parse(localStorage.getItem('absensi_' + currentUser.kode)) || {};
+      let total = 0, potong = 0;
+      Object.keys(data).sort().forEach(tgl => {
+        const item = data[tgl];
+        total += item.gaji;
+        potong += item.potongan;
+        tbody.innerHTML += `<tr><td>${tgl}</td><td>${item.gaji}</td><td>${item.potongan}</td></tr>`;
       });
-    });
-    hitungGaji();
-  }
+      document.getElementById('slip').innerHTML = `<b>Total Gaji:</b> Rp${total}<br><b>Total Potongan:</b> Rp${potong}<br><b>Gaji Bersih:</b> Rp${total - potong}`;
+      loadRiwayat();
+    }
 
-  function hitungGaji() {
-    const user = JSON.parse(localStorage.getItem("userLogin"));
-    const periode = document.getElementById("periode").value;
-    const bulan = new Date().getMonth() + 1;
-    const key = `absensi_${user.kode}_${bulan}_${periode}`;
-    const data = JSON.parse(localStorage.getItem(key)) || {};
-    const masuk = Object.keys(data).length;
-    const potonganPerHari = parseInt(document.getElementById("potonganDamage").value || 0);
-    const potonganTotal = masuk * potonganPerHari;
-    const totalGaji = masuk * gajiPerHari - potonganTotal;
+    function cetakSlip() {
+      html2canvas(document.getElementById("slip")).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'slip-gaji.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
 
-    document.getElementById("slipGaji").innerHTML = `
-      Hari Masuk: <b>${masuk}</b><br>
-      Gaji Per Hari: Rp${gajiPerHari.toLocaleString()}<br>
-      Potongan Total: Rp${potonganTotal.toLocaleString()}<br>
-      <hr>
-      <b>Total Gaji: Rp${totalGaji.toLocaleString()}</b>
-    `;
-  }
+    function loadRiwayat() {
+      const tbody = document.getElementById('riwayatKerja');
+      tbody.innerHTML = '';
+      const data = JSON.parse(localStorage.getItem('absensi_' + currentUser.kode)) || {};
+      const bulan = {};
+      Object.keys(data).forEach(tgl => {
+        const b = tgl.slice(0,7);
+        if (!bulan[b]) bulan[b] = { hari: 0, gaji: 0 };
+        bulan[b].hari++;
+        bulan[b].gaji += data[tgl].gaji - data[tgl].potongan;
+      });
+      Object.keys(bulan).sort().forEach(b => {
+        tbody.innerHTML += `<tr><td>${b}</td><td>${bulan[b].hari}</td><td>Rp${bulan[b].gaji}</td></tr>`;
+      });
+    }
 
-  document.getElementById("periode").addEventListener("change", renderKalender);
-  document.getElementById("potonganDamage").addEventListener("input", hitungGaji);
-
-  function downloadSlipGaji() {
-    const slip = document.getElementById("slipGaji");
-    const canvas = document.getElementById("canvasExport");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 600;
-    canvas.height = 300;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#000000";
-    ctx.font = "18px Arial";
-    ctx.fillText("Slip Gaji", 250, 40);
-    ctx.font = "14px Arial";
-    const lines = slip.innerText.split("\n");
-    lines.forEach((line, i) => {
-      ctx.fillText(line, 50, 80 + i * 25);
-    });
-
-    const imgURL = canvas.toDataURL();
-    const link = document.createElement("a");
-    link.href = imgURL;
-    link.download = "slip-gaji.png";
-    link.click();
-  }
-
-  init();
-</script></body>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script></body>
 </html>
