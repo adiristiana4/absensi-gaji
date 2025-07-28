@@ -1,209 +1,59 @@
-<!DOCTYPE html><html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Absensi dan Gaji</title>
-  <style>
-    :root {
-      --primary: #22c55e;
-      --bg: #f4f4f5;
-      --white: #ffffff;
-      --dark: #1f2937;
-    }body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: var(--bg);
-  color: var(--dark);
-}
-
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.card {
-  background: var(--white);
-  padding: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  margin-bottom: 1rem;
-}
-
-.tabs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.tab-button {
-  padding: 0.5rem 1rem;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.tab-button.active {
-  background: #15803d;
-}
-
-.hidden {
-  display: none;
-}
-
-h1, h2 {
-  text-align: center;
-}
-
-.logout {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: red;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1rem;
-}
-
-.day-button {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 0.5rem;
-  background: white;
-  cursor: pointer;
-  text-align: center;
-}
-
-.day-button.active {
-  background: var(--primary);
-  color: white;
-}
-
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  }
-}
-
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Absensi & Gaji</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <button class="logout" onclick="logout()">Logout</button>
-    <h1>Selamat datang, <span id="namaUser"></span></h1>
-    <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('periode1')">Periode 1–15</button>
-      <button class="tab-button" onclick="switchTab('periode2')">Periode 16–Akhir</button>
-      <button class="tab-button" onclick="switchTab('rekap')">Rekap Gaji</button>
-      <button class="tab-button" onclick="switchTab('riwayat')">Riwayat Kerja</button>
-    </div><div id="periode1" class="card">
-  <h2>Absensi Periode 1–15</h2>
-  <div class="grid" id="grid1"></div>
-</div>
+  <header>
+    <h1>Absensi & Slip Gaji</h1>
+    <p id="userNama">Selamat datang, ...</p>
+    <button onclick="logout()">Logout</button>
+  </header>
 
-<div id="periode2" class="card hidden">
-  <h2>Absensi Periode 16–Akhir</h2>
-  <div class="grid" id="grid2"></div>
-</div>
+  <main>
+    <section class="tab">
+      <button onclick="tampilTab('periode1')">Periode 1–15</button>
+      <button onclick="tampilTab('periode2')">Periode 16–Akhir</button>
+      <button onclick="tampilTab('rekap')">Rekap</button>
+      <button onclick="tampilTab('riwayat')">Riwayat</button>
+    </section>
 
-<div id="rekap" class="card hidden">
-  <h2>Rekap Gaji</h2>
-  <div id="rekapIsi"></div>
-</div>
+    <section id="periode1" class="tab-content">
+      <h2>Absensi Periode 1–15</h2>
+      <div class="tanggal-grid" id="grid1"></div>
+      <p>Total Masuk: <span id="masuk1">0</span> hari</p>
+      <p>Gaji: Rp <span id="gaji1">0</span></p>
+      <input type="number" id="potongan1" placeholder="Potongan manual (Rp)" />
+      <button onclick="cetakSlip(1)">Cetak Slip PNG</button>
+    </section>
 
-<div id="riwayat" class="card hidden">
-  <h2>Riwayat Kerja</h2>
-  <p id="riwayatKerja"></p>
-</div>
+    <section id="periode2" class="tab-content" style="display:none;">
+      <h2>Absensi Periode 16–Akhir</h2>
+      <div class="tanggal-grid" id="grid2"></div>
+      <p>Total Masuk: <span id="masuk2">0</span> hari</p>
+      <p>Gaji: Rp <span id="gaji2">0</span></p>
+      <input type="number" id="potongan2" placeholder="Potongan manual (Rp)" />
+      <button onclick="cetakSlip(2)">Cetak Slip PNG</button>
+    </section>
 
-  </div>  <script>
-    const namaSpan = document.getElementById('namaUser');
-    const user = JSON.parse(localStorage.getItem("userLogin"));
-    if (!user) {
-      location.href = "index.html";
-    } else {
-      namaSpan.textContent = user.nama;
-    }
+    <section id="rekap" class="tab-content" style="display:none;">
+      <h2>Rekap Bulanan</h2>
+      <p>Total Hari Masuk: <span id="totalMasuk">0</span></p>
+      <p>Total Gaji: Rp <span id="totalGaji">0</span></p>
+    </section>
 
-    const gajiPerHari = 100000;
-    const grid1 = document.getElementById('grid1');
-    const grid2 = document.getElementById('grid2');
+    <section id="riwayat" class="tab-content" style="display:none;">
+      <h2>Riwayat Kerja</h2>
+      <p>Masuk sejak: <span id="riwayatKerja">...</span></p>
+    </section>
+  </main>
 
-    const now = new Date();
-    const bulan = now.getMonth();
-    const tahun = now.getFullYear();
-    const akhirBulan = new Date(tahun, bulan + 1, 0).getDate();
+  <canvas id="slipCanvas" style="display:none;"></canvas>
 
-    function buatHari(grid, start, end, key) {
-      for (let i = start; i <= end; i++) {
-        const btn = document.createElement('div');
-        btn.className = 'day-button';
-        btn.textContent = `Tgl ${i}`;
-        const dataKey = `${key}-${i}`;
-        if (localStorage.getItem(dataKey)) btn.classList.add('active');
-        btn.onclick = () => {
-          if (localStorage.getItem(dataKey)) {
-            localStorage.removeItem(dataKey);
-            btn.classList.remove('active');
-          } else {
-            localStorage.setItem(dataKey, '1');
-            btn.classList.add('active');
-          }
-          hitungRekap();
-        };
-        grid.appendChild(btn);
-      }
-    }
-
-    buatHari(grid1, 1, 15, `p1-${user.kode}-${bulan}-${tahun}`);
-    buatHari(grid2, 16, akhirBulan, `p2-${user.kode}-${bulan}-${tahun}`);
-
-    function switchTab(id) {
-      document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(id).classList.remove('hidden');
-      event.target.classList.add('active');
-      if (id === 'rekap') hitungRekap();
-      if (id === 'riwayat') tampilkanRiwayat();
-    }
-
-    function hitungRekap() {
-      let total1 = 0, total2 = 0;
-      for (let i = 1; i <= 15; i++) {
-        if (localStorage.getItem(`p1-${user.kode}-${bulan}-${tahun}-${i}`)) total1++;
-      }
-      for (let i = 16; i <= akhirBulan; i++) {
-        if (localStorage.getItem(`p2-${user.kode}-${bulan}-${tahun}-${i}`)) total2++;
-      }
-      const totalGaji1 = total1 * gajiPerHari;
-      const totalGaji2 = total2 * gajiPerHari;
-      document.getElementById('rekapIsi').innerHTML = `
-        <p><strong>Periode 1–15:</strong> ${total1} hari x Rp${gajiPerHari} = Rp${totalGaji1.toLocaleString()}</p>
-        <p><strong>Periode 16–${akhirBulan}:</strong> ${total2} hari x Rp${gajiPerHari} = Rp${totalGaji2.toLocaleString()}</p>
-        <hr>
-        <p><strong>Total Gaji:</strong> Rp${(totalGaji1 + totalGaji2).toLocaleString()}</p>
-      `;
-    }
-
-    function tampilkanRiwayat() {
-      const mulaiKerja = localStorage.getItem(`riwayat-${user.kode}`) || `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
-      localStorage.setItem(`riwayat-${user.kode}`, mulaiKerja);
-      document.getElementById('riwayatKerja').textContent = `Mulai bekerja sejak: ${mulaiKerja}`;
-    }
-
-    function logout() {
-      localStorage.removeItem("userLogin");
-      location.href = "index.html";
-    }
-  </script></body>
+  <script src="utils.js"></script>
+  <script src="absensi.js"></script>
+</body>
 </html>
